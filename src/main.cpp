@@ -164,6 +164,55 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
 
 }
 
+bool tryLeftLane(int lane, int prev_size, float car_s, vector<vector<double>> sensor_fusion){
+    int new_lane = lane - 1;
+    bool can_change = true;
+
+    if (lane == 0) {
+        return false;
+    }
+
+    for (int i = 0; i < sensor_fusion.size(); i++) {
+        float d = sensor_fusion[i][6];
+        if ((d < 2+4*new_lane+2)&&(d > 2 + 4*new_lane - 2)) {
+            double vx = sensor_fusion[i][3];
+            double vy = sensor_fusion[i][4];
+            double check_speed = sqrt(vx*vx+vy*vy);
+            double check_car_s = sensor_fusion[i][5];
+
+            check_car_s += (double)prev_size*0.02*check_speed;
+            if ((check_car_s > car_s)&&(check_car_s - car_s < 30)) {
+                 can_change = false;
+            }
+        }
+    }
+    return can_change;
+}
+
+bool tryRightLane(int lane, int prev_size, float car_s, vector<vector<double>> sensor_fusion){
+    int new_lane = lane + 1;
+    bool can_change = true;
+
+    if (lane == 2) {
+        return false;
+    }
+
+    for (int i = 0; i < sensor_fusion.size(); i++) {
+        float d = sensor_fusion[i][6];
+        if ((d < 2+4*new_lane+2)&&(d > 2 + 4*new_lane - 2)) {
+            double vx = sensor_fusion[i][3];
+            double vy = sensor_fusion[i][4];
+            double check_speed = sqrt(vx*vx+vy*vy);
+            double check_car_s = sensor_fusion[i][5];
+            
+            check_car_s += (double)prev_size*0.02*check_speed;
+            if ((check_car_s > car_s)&&(check_car_s - car_s < 30)) {
+                 can_change = false;
+            }
+        }            
+    }
+    return can_change;
+}
 int main() {
   uWS::Hub h;
 
@@ -274,28 +323,10 @@ int main() {
                     }
                 }
                 if (too_close) {
-                    if (lane > 0) {
-                        int new_lane = lane - 1;
-                        bool can_change = true;
-                        for (int i = 0; i < sensor_fusion.size(); i++) {
-                            float d = sensor_fusion[i][6];
-                            if ((d < 2+4*new_lane+2)&&(d > 2 + 4*new_lane - 2)) {
-                                double vx = sensor_fusion[i][3];
-                                double vy = sensor_fusion[i][4];
-                                double check_speed = sqrt(vx*vx+vy*vy);
-                                double check_car_s = sensor_fusion[i][5];
-
-                                check_car_s += (double)prev_size*0.02*check_speed;
-                                if ((check_car_s > car_s)&&(check_car_s - car_s < 30)) {
-                                    can_change = false;
-                                }
-                            }
-                        }
-                        if (can_change == true) {
-                            lane = new_lane;
-                        } else {
-                            ref_val -= 0.224;
-                        }
+                    if (tryLeftLane(lane, prev_size, car_s, sensor_fusion)) {
+                        lane--;
+                    } if (tryRightLane(lane, prev_size, car_s, sensor_fusion)) {
+                        lane++;
                     } else {
                         ref_val -= 0.224;
                     }
