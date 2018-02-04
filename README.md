@@ -1,6 +1,26 @@
 # CarND-Path-Planning-Project
 Self-Driving Car Engineer Nanodegree Program
-   
+
+### My implementation
+My implementation includes three important parts:
+1. choose current lane(line 309-335)
+I check if there is a car too close to my car.
+If not, my car tends to keep current lane.
+If yes, I check if my car can change lane to left first, then try right lane.
+Only if my car can't change lane, it will slow down.
+I add two function to check if my car can change lane:
+tryLeftLane(line 167-190)
+tryRightLane(line 192-215)
+In these two function, I first check if there is a next lane. If there is, I check if there is any car which is too close in the next lane. 
+
+2. choose five anchor points
+Two of them are from previous points.(line 337-357)
+Three are the position 30,60,90 meters far away from current position in s.(358-360)
+
+3. use spline to create trajectory
+Use spline to create trajectory with these anchor points and push all created points to next position.(line 378-410)
+BTW, since I use Frenet, here I need to change it back to normal coordinate.
+
 ### Simulator.
 You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases).
 
